@@ -1,0 +1,129 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ===== DARK SAAS THEME ===== */
+:root {
+  --bg-main: #0b1220;
+  --bg-secondary: #0f172a;
+  --card-bg: rgba(255, 255, 255, 0.04);
+  --border: rgba(255, 255, 255, 0.08);
+
+  --text-primary: #e5e7eb;
+  --text-secondary: #9ca3af;
+
+  --accent-blue: #3b82f6;
+  --accent-purple: #8b5cf6;
+}
+
+/* ===== GLOBAL ===== */
+body {
+  @apply bg-[#0b1220] text-gray-200;
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+/* ===== GLASS CARD ===== */
+.card-dark {
+  @apply bg-[rgba(255,255,255,0.04)] backdrop-blur-xl border border-[rgba(255,255,255,0.08)] rounded-xl;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+/* ===== BUTTON ===== */
+.btn-primary {
+  @apply bg-gradient-to-r from-blue-500 to-purple-500 text-white px-4 py-2 rounded-lg shadow-lg transition-all duration-300;
+}
+
+.btn-primary:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+/* ===== GLOW EFFECT ===== */
+.glow {
+  box-shadow: 0 0 25px rgba(59, 130, 246, 0.35);
+}
+
+/* ===== INPUT ===== */
+.input {
+  @apply bg-white/10 border border-white/20 text-white px-3 py-2 rounded-md outline-none;
+}
+
+.label {
+  @apply text-gray-400 text-sm mb-1;
+}
+
+.chip {
+  @apply px-3 py-1 rounded-full bg-white/10 text-gray-300 text-xs hover:bg-blue-500/20 hover:text-white;
+}
+
+/* ===== SCROLLBAR ===== */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0b1220;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(to bottom, #1e293b, #334155);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(to bottom, #334155, #475569);
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #1e293b #0b1220;
+}
+
+/* ===== ANIMATIONS ===== */
+
+/* Fade */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.animate-fadeIn {
+  animation: fadeIn 0.4s ease-in-out;
+}
+
+/* Scale */
+@keyframes scaleIn {
+  from { transform: scale(0.95); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+.animate-scaleIn {
+  animation: scaleIn 0.3s ease;
+}
+
+/* Slide Up */
+@keyframes slideUp {
+  from { transform: translateY(100%); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+.animate-slideUp {
+  animation: slideUp 0.3s ease-out;
+}
+
+/* ===== GRADIENT BACKGROUND ===== */
+.gradient-bg {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(120deg, #0b1220, #1e293b, #3b82f6, #8b5cf6);
+  background-size: 300% 300%;
+  animation: move 12s infinite ease;
+  opacity: 0.25;
+}
+
+@keyframes move {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+body {
+  overflow-x: hidden;
+}

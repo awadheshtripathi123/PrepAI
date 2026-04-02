@@ -1,0 +1,17 @@
+[
+  "Tell me about your experience as an Android Developer and what excites you about this field.",
+  "Describe the key differences between `val` and `var` in Kotlin, and when you would choose one over the other.",
+  "Explain the purpose of Android Jetpack Architecture Components. Can you give an example of how you've used `ViewModel` and `LiveData` or `Flow` in a project?",
+  "How do you handle asynchronous operations and network requests in an Android application? Discuss different approaches and their trade-offs.",
+  "Describe a time you had to collaborate with other developers (Android, backend, design) on a complex feature. What was your role, and what was the outcome?",
+  "Imagine a user is reporting a crash that you cannot reproduce on your development device. How would you approach debugging and resolving this issue?",
+  "What are some best practices for designing responsive and accessible user interfaces in Android? How do you support different screen sizes and densities?",
+  "You're asked to integrate a new, unfamiliar third-party library into an existing project. What steps would you take to evaluate, integrate, and test it effectively?",
+  "How do you identify and resolve performance bottlenecks in an Android application, particularly related to UI rendering or battery consumption?",
+  "Tell me about a time you disagreed with a technical decision made by a team member or a lead. How did you handle it, and what was the resolution?",
+  "What types of testing do you typically perform for an Android application? Describe your experience with unit, integration, and UI testing frameworks.",
+  "Consider an application that needs to display a large list of items (e.g., 1000+). How would you optimize its performance and memory usage?",
+  "What are common security considerations when developing Android applications, and how do you mitigate potential vulnerabilities?",
+  "How do you stay up-to-date with the latest Android development trends, technologies, and best practices?",
+  "Describe a situation where you received constructive feedback on your code or approach. How did you respond, and what did you learn from it?"
+]
