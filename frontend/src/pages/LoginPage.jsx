@@ -1,7 +1,7 @@
 import { Mail, Lock, X } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { setToken } from "../utils/api";
+import { setToken, authFetch } from "../utils/api";
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || "YOUR_GOOGLE_CLIENT_ID_HERE";
 
@@ -53,9 +53,8 @@ const LoginPage = () => {
         client_id: GOOGLE_CLIENT_ID,
         callback: async (response) => {
           try {
-            const res = await fetch("/api/v1/auth/google", {
+            const res = await authFetch("/api/v1/auth/google", {
               method: "POST",
-              headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ tokenId: response.credential }),
             });
             const data = await res.json();
@@ -107,9 +106,8 @@ const LoginPage = () => {
 
       const response = await window.AppleID.auth.signIn();
 
-      const res = await fetch("/api/v1/auth/apple", {
+      const res = await authFetch("/api/v1/auth/apple", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           identityToken: response.authorization.id_token,
           user: response.user,
@@ -133,9 +131,8 @@ const LoginPage = () => {
 
   const handleLogin = async () => {
     try {
-      const res = await fetch("/api/v1/auth/login", {
+      const res = await authFetch("/api/v1/auth/login", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
       const data = await res.json();
