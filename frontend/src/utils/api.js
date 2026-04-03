@@ -1,4 +1,4 @@
-const API_BASE = '';
+const API_BASE = 'https://prepai-edcp.onrender.com';
 
 export const getToken = () => {
   return localStorage.getItem('token');
