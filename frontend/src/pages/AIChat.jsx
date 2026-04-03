@@ -60,7 +60,14 @@ const AIChat = () => {
   };
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="h-full flex flex-col relative overflow-hidden">
+      
+      {/* Background Watermark Image */}
+      <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.08] mix-blend-screen pointer-events-none z-0">
+        <img src="/logo.png" alt="Background Watermark" className="w-[500px] md:w-[600px] object-contain drop-shadow-[0_0_50px_rgba(59,130,246,0.8)]" />
+      </div>
+
+      <div className="relative z-10 flex flex-col h-full w-full">
 
       {/* 🔙 TOP BAR */}
       <div className="flex items-center px-6 py-4">
@@ -128,6 +135,8 @@ const AIChat = () => {
             className="text-blue-400 cursor-pointer"
           />
         </div>
+
+      </div>
 
       </div>
 

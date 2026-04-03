@@ -28,7 +28,7 @@ const Navbar = () => {
 
   return (
     <div className="flex items-center justify-between px-6 h-full bg-[#0f172a] border-b border-white/10 relative z-50">
-      <h1 className="text-white font-semibold text-lg">AI Interviewer</h1>
+      <h1 className="text-white font-semibold text-lg tracking-wide">PrepAI</h1>
 
       <div className="flex items-center gap-6">
         <div className="flex items-center bg-[#1e293b] px-4 py-2 rounded-xl w-72 border border-white/10">

@@ -32,6 +32,31 @@ const InterviewRound = () => {
   const videoRef = useRef(null);
   const streamRef = useRef(null);
   const recognitionRef = useRef(null);
+  const lastSpeechTimeRef = useRef(Date.now());
+  const candidateAnswerRef = useRef(candidateAnswer);
+  const isDictatingRef = useRef(isDictating);
+  const aiLoadingRef = useRef(aiLoading);
+  const submittedRef = useRef(submitted);
+
+  useEffect(() => { candidateAnswerRef.current = candidateAnswer; }, [candidateAnswer]);
+  useEffect(() => { isDictatingRef.current = isDictating; }, [isDictating]);
+  useEffect(() => { aiLoadingRef.current = aiLoading; }, [aiLoading]);
+  useEffect(() => { submittedRef.current = submitted; }, [submitted]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (isDictatingRef.current && !aiLoadingRef.current && !submittedRef.current && candidateAnswerRef.current.trim().length > 0) {
+        const timeSinceLastSpeech = Date.now() - lastSpeechTimeRef.current;
+        if (timeSinceLastSpeech >= 10000) {
+          const btn = document.getElementById("submit-answer-btn");
+          if (btn && !btn.disabled) {
+            btn.click();
+          }
+        }
+      }
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   const stopStream = useCallback(() => {
     if (streamRef.current) {
@@ -125,6 +150,7 @@ const InterviewRound = () => {
           try {
             recognitionRef.current.start();
             setIsDictating(true);
+            lastSpeechTimeRef.current = Date.now();
           } catch (e) {}
         }
       };
@@ -142,10 +168,11 @@ const InterviewRound = () => {
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       recognitionRef.current = new SpeechRecognition();
       recognitionRef.current.continuous = true;
-      // Using only final results for stability since we append
-      recognitionRef.current.interimResults = false;
+      // Use interim results strictly for reset timer tracking, ignore non-final text
+      recognitionRef.current.interimResults = true;
 
       recognitionRef.current.onresult = (event) => {
+        lastSpeechTimeRef.current = Date.now();
         let finalTranscript = '';
         for (let i = event.resultIndex; i < event.results.length; ++i) {
           if (event.results[i].isFinal) {
@@ -182,6 +209,7 @@ const InterviewRound = () => {
       try {
         recognitionRef.current.start();
         setIsDictating(true);
+        lastSpeechTimeRef.current = Date.now();
       } catch (err) {
         console.error(err);
       }
@@ -234,6 +262,10 @@ const InterviewRound = () => {
     if (!candidateAnswer.trim()) {
       alert("Please provide an answer before moving to the next question.");
       return;
+    }
+
+    if (recognitionRef.current && isDictating) {
+      try { recognitionRef.current.stop(); } catch(e){}
     }
 
     setSubmitted(true);
@@ -361,7 +393,7 @@ const InterviewRound = () => {
               )}
             </div>
 
-            <div className="bg-[#1a1a2e] border border-white/10 rounded-lg p-4 mb-4">
+            <div className="bg-[#1a1a2e] border border-white/10 rounded-lg p-4 mb-4 max-h-48 overflow-y-auto">
               <p className="text-gray-200 text-base leading-relaxed">
                 {aiLoading ? "Generating next question..." : currentQuestion}
               </p>
@@ -369,13 +401,13 @@ const InterviewRound = () => {
 
             {/* EVALUATION FEEDBACK */}
             {evaluations.length > 0 && !submitted && (
-              <div className="bg-[#1a1a1a] border border-white/10 rounded-lg p-3 mb-4">
+              <div className="bg-[#1a1a1a] border border-white/10 rounded-lg p-3 mb-4 max-h-24 overflow-y-auto">
                 <p className="text-gray-400 text-xs mb-1">Previous evaluation:</p>
-                <div className="flex items-center gap-2">
-                  <span className={"text-sm font-bold " + (evaluations[evaluations.length - 1].score >= 60 ? "text-green-400" : "text-yellow-400")}>
+                <div className="flex items-start gap-2">
+                  <span className={"text-sm font-bold mt-0.5 " + (evaluations[evaluations.length - 1].score >= 60 ? "text-green-400" : "text-yellow-400")}>
                     {evaluations[evaluations.length - 1].score}%
                   </span>
-                  <span className="text-gray-400 text-xs">
+                  <span className="text-gray-400 text-xs leading-relaxed">
                     {evaluations[evaluations.length - 1].feedback}
                   </span>
                 </div>
@@ -443,6 +475,7 @@ const InterviewRound = () => {
             </div>
 
             <button
+              id="submit-answer-btn"
               onClick={handleNextQuestion}
               disabled={aiLoading || submitted}
               className={"px-6 py-2 rounded-lg text-sm font-medium transition " +
@@ -458,44 +491,91 @@ const InterviewRound = () => {
         <div className="flex-1 bg-[#2a2a2a] rounded-lg flex flex-col items-center justify-center gap-6 p-6">
           {/* AI INTERVIEWER */}
           <div className="w-[320px] h-[220px] bg-[#1a1a2e] rounded-xl flex flex-col items-center justify-center border border-white/10 relative overflow-hidden">
+            <style>{`
+              @keyframes audio-wave {
+                0% { height: 6px; }
+                50% { height: 20px; }
+                100% { height: 6px; }
+              }
+              @keyframes mouth-speak {
+                0%, 100% { ry: 1.5px; rx: 4px; }
+                50% { ry: 4px; rx: 3.5px; }
+              }
+              @keyframes head-bob {
+                0%, 100% { transform: translateY(0) rotate(0deg); }
+                25% { transform: translateY(-3px) rotate(-1deg); }
+                75% { transform: translateY(-2px) rotate(1deg); }
+              }
+              .animate-head-bob { animation: head-bob 1.5s infinite ease-in-out; }
+              .animate-audio-wave-1 { animation: audio-wave 0.8s infinite ease-in-out 0.1s; }
+              .animate-audio-wave-2 { animation: audio-wave 1.1s infinite ease-in-out 0.3s; }
+              .animate-audio-wave-3 { animation: audio-wave 0.9s infinite ease-in-out 0.5s; }
+              .animate-audio-wave-4 { animation: audio-wave 1.2s infinite ease-in-out 0.2s; }
+              .animate-audio-wave-5 { animation: audio-wave 1.0s infinite ease-in-out 0.4s; }
+              .animate-mouth { animation: mouth-speak 0.3s infinite alternate; }
+            `}</style>
+            
             <div
               className={"absolute inset-0 transition-opacity duration-500 " + (isSpeaking ? "opacity-100" : "opacity-0")}
               style={{ background: "radial-gradient(circle at center, rgba(59,130,246,0.15) 0%, transparent 70%)" }}
             />
-            <div className="relative">
+            
+            <div className="relative mt-2">
+              {/* Outer pulsing ring */}
+              {isSpeaking && (
+                <div className="absolute inset-0 rounded-full border-4 border-blue-500/30 animate-ping" style={{ animationDuration: '2s' }} />
+              )}
+              
               <div
-                className={"w-28 h-28 rounded-full flex items-center justify-center transition-all duration-300 " +
-                  (isSpeaking ? "ring-4 ring-blue-400/60 shadow-lg shadow-blue-500/30" : "")
+                className={"relative z-10 w-28 h-28 rounded-full flex items-center justify-center transition-all duration-300 " +
+                  (isSpeaking ? "ring-4 ring-purple-400/50 shadow-[0_0_30px_rgba(139,92,246,0.5)] animate-head-bob" : "")
                 }
                 style={{ background: "linear-gradient(135deg, #3b82f6, #8b5cf6)" }}
               >
                 <svg width="56" height="56" viewBox="0 0 64 64" fill="none">
+                  {/* Robot Head Body */}
                   <rect x="12" y="18" width="40" height="32" rx="8" fill="white" fillOpacity="0.9"/>
+                  
+                  {/* Eyes Base */}
                   <circle cx="26" cy="32" r="4" fill="#1e293b"/>
                   <circle cx="38" cy="32" r="4" fill="#1e293b"/>
-                  <circle cx="27.5" cy="30.5" r="1.5" fill="white"/>
-                  <circle cx="39.5" cy="30.5" r="1.5" fill="white"/>
+                  
+                  {/* Eye Highlights */}
+                  <circle cx="27.5" cy="30.5" r="1.5" fill={"white"} className={isSpeaking ? "animate-pulse" : ""}/>
+                  <circle cx="39.5" cy="30.5" r="1.5" fill={"white"} className={isSpeaking ? "animate-pulse" : ""}/>
+                  
+                  {/* Mouth */}
                   {isSpeaking ? (
-                    <ellipse cx="32" cy="42" rx="5" ry="3" fill="#1e293b"/>
+                    <ellipse cx="32" cy="42" rx="4" ry="1.5" fill="#1e293b" className="animate-mouth"/>
                   ) : (
                     <path d="M27 41 Q32 45 37 41" stroke="#1e293b" strokeWidth="2" fill="none" strokeLinecap="round"/>
                   )}
+                  
+                  {/* Antenna */}
                   <line x1="32" y1="18" x2="32" y2="8" stroke="white" strokeOpacity="0.8" strokeWidth="2"/>
-                  <circle cx="32" cy="6" r="3" fill="#60a5fa"/>
+                  <circle cx="32" cy="6" r="3" fill="#60a5fa" className={isSpeaking ? "animate-ping opacity-75" : ""}/>
+                  {!isSpeaking && <circle cx="32" cy="6" r="3" fill="#60a5fa"/>}
                 </svg>
               </div>
+              
+              {/* Dynamic Waveform */}
               {isSpeaking && (
-                <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
-                  <div className="w-1 h-3 bg-blue-400 rounded animate-pulse"/>
-                  <div className="w-1 h-5 bg-blue-400 rounded animate-pulse" style={{ animationDelay: "0.15s" }}/>
-                  <div className="w-1 h-2 bg-blue-400 rounded animate-pulse" style={{ animationDelay: "0.3s" }}/>
+                <div className="absolute -bottom-5 left-1/2 -translate-x-1/2 flex items-end justify-center gap-1.5 h-8 w-24">
+                  <div className="w-1.5 rounded-full bg-blue-400 animate-audio-wave-1"/>
+                  <div className="w-1.5 rounded-full bg-purple-400 animate-audio-wave-2"/>
+                  <div className="w-1.5 rounded-full bg-blue-300 animate-audio-wave-3"/>
+                  <div className="w-1.5 rounded-full bg-purple-400 animate-audio-wave-4"/>
+                  <div className="w-1.5 rounded-full bg-blue-400 animate-audio-wave-5"/>
                 </div>
               )}
             </div>
-            <p className="text-gray-200 text-sm mt-5 font-medium">AI Interviewer</p>
-            <p className={"text-xs mt-1 " + (isSpeaking ? "text-blue-400" : "text-gray-500")}>
-              {aiLoading ? "Thinking..." : isSpeaking ? "Speaking..." : "Listening..."}
-            </p>
+            
+            <div className="mt-8 flex flex-col items-center">
+              <p className="text-gray-200 text-sm font-medium">AI Interviewer</p>
+              <p className={"text-xs mt-1 " + (isSpeaking ? "text-purple-400 animate-pulse font-medium" : "text-gray-500")}>
+                {aiLoading ? "Thinking..." : isSpeaking ? "Speaking..." : "Listening..."}
+              </p>
+            </div>
           </div>
 
           {/* YOUR CAMERA */}

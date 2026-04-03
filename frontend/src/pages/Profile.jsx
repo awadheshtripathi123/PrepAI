@@ -17,9 +17,11 @@ const Profile = () => {
           setUser(data.data);
         } else {
           console.error(data.error);
+          navigate("/login");
         }
       } catch (error) {
         console.error('Failed to fetch user data:', error);
+        navigate("/login");
       }
     };
 
@@ -37,10 +39,15 @@ const Profile = () => {
 
     fetchUserData();
     fetchActivities();
-  }, []);
+  }, [navigate]);
 
   if (!user) {
-    return <div>Loading...</div>;
+    return (
+      <div className="w-full h-full flex flex-col items-center justify-center p-10 text-white">
+        <div className="animate-spin w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full mb-4"></div>
+        <p>Loading Profile...</p>
+      </div>
+    );
   }
 
   return (

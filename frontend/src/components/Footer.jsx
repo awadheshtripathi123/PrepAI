@@ -7,7 +7,7 @@ const Footer = () => {
       <div className="flex items-center gap-2">
         
         <Link to="/copyright" className="hover:text-white">
-          © 2026 AI Interviewer
+          © 2026 PrepAI
         </Link>
 
         <span>|</span>

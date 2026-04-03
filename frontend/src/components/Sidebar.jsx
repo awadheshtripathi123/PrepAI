@@ -45,21 +45,15 @@ const Sidebar = () => {
 
   // ✅ Profile toggle logic
   const handleProfileClick = () => {
-    if (location.pathname.startsWith("/profile")) {
-      navigate(-1); // go back (better UX)
-    } else {
-      navigate("/profile");
-    }
+    navigate("/profile");
   };
 
   return (
     <div className="w-16 h-screen bg-[#0f172a] border-r border-white/10 flex flex-col items-center py-6">
 
       {/* LOGO */}
-      <div className="mb-10">
-        <div className="w-8 h-8 rounded-full bg-pink-500 flex items-center justify-center text-xs font-bold text-white">
-          AI
-        </div>
+      <div className="mb-10 w-full flex justify-center">
+        <img src="/logo.png" alt="PrepAI Sidebar Logo" className="w-10 h-10 object-contain drop-shadow-lg" />
       </div>
 
       {/* TOP MENU */}

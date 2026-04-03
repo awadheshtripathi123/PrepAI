@@ -11,7 +11,7 @@ const Hero = ({ type = "home" }) => {
         <h1 className="text-3xl lg:text-4xl font-semibold text-white">
           {type === "learning"
             ? "Welcome Back, Aman!"
-            : "Welcome to AI Interviewer 🚀"}
+            : "Welcome to PrepAI 🚀"}
         </h1>
 
         <p className="text-gray-400 text-sm mt-2">
