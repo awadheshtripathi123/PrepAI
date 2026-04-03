@@ -94,6 +94,8 @@ const Instructions = () => {
 
     flow.push("result");
 
+    stopStream();
+    
     navigate("/mock/" + flow[0], {
       state: { flow, step: 0, config, type },
     });

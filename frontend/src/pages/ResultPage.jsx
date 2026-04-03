@@ -45,12 +45,12 @@ const ResultPage = () => {
       if (saved) return;
       setLoading(true);
       try {
-        const assessmentScorePercentage = config?.assessmentScorePercentage ?? (Math.floor(Math.random() * 40) + 60);
-        const assessmentCorrect = config?.assessmentCorrect ?? Math.round((assessmentScorePercentage / 100) * 15);
-        const assessmentTotal = config?.assessmentTotal ?? 15;
+        const assessmentScorePercentage = config?.assessmentScorePercentage ?? 0;
+        const assessmentCorrect = config?.assessmentCorrect ?? 0;
+        const assessmentTotal = config?.assessmentTotal ?? 0;
 
-        const codingScore = config?.codingScore ?? (Math.floor(Math.random() * 40) + 60);
-        const interviewScore = config?.interviewScore ?? (Math.floor(Math.random() * 40) + 60);
+        const codingScore = config?.codingScore ?? 0;
+        const interviewScore = config?.interviewScore ?? 0;
 
         let overallScore = 0;
         let count = 0;
@@ -69,10 +69,10 @@ const ResultPage = () => {
         }
         overallScore = count > 0 ? Math.round(overallScore / count) : 0;
 
-        const communicationScore = Math.floor(Math.random() * 30) + 60;
-        const confidenceScore = Math.floor(Math.random() * 30) + 60;
-        const problemSolvingScore = Math.floor(Math.random() * 30) + 60;
-        const technicalScore = Math.floor(Math.random() * 30) + 60;
+        const communicationScore = overallScore;
+        const confidenceScore = overallScore;
+        const problemSolvingScore = overallScore;
+        const technicalScore = overallScore;
 
         let feedback = '';
         if (overallScore >= 80) {
@@ -409,9 +409,9 @@ const ResultPage = () => {
 
           <div className={'w-40 h-40 rounded-full border-4 ' + getScoreBorderColor(result?.overallScore || 0) + ' flex flex-col items-center justify-center mb-4'}>
             <span className={'text-5xl font-bold ' + getScoreColor(result?.overallScore || 0)}>
-              {(result?.mode === 'Assessment' && result?.assessmentTotal) ? result.assessmentScore : (result?.overallScore || 0)}
+              {(result?.mode === 'Assessment' && result?.assessmentTotal > 0) ? result.assessmentScore : (result?.overallScore || 0)}
             </span>
-            <span className="text-gray-400 text-sm">/ {(result?.mode === 'Assessment' && result?.assessmentTotal) ? result.assessmentTotal : 100}</span>
+            <span className="text-gray-400 text-sm">/ {(result?.mode === 'Assessment' && result?.assessmentTotal > 0) ? result.assessmentTotal : 100}</span>
           </div>
 
           {result?.level && (

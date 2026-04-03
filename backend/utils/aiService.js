@@ -147,7 +147,7 @@ Format: Array of strings.`;
 
 // Generate comprehensive performance evaluation via AI
 const generatePerformanceEvaluation = async (role, mode, difficulty, scores, assessmentDetails = [], codingDetails = [], interviewEvaluations = []) => {
-  const model = getModel();
+  const model = getJsonModel();
 
   let contextSnippet = "\\n--- CANDIDATE PERFORMANCE LOGS ---\\n";
   if (assessmentDetails && assessmentDetails.length > 0) {

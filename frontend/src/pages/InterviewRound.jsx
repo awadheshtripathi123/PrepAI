@@ -129,6 +129,14 @@ const InterviewRound = () => {
     if (camOn && !streamRef.current) startCamera();
   }, [camOn, startCamera]);
 
+  // Aggressive clamp to ensure the video tag never drops the stream feed after loading
+  useEffect(() => {
+    if (cameraReady && videoRef.current && streamRef.current && videoRef.current.srcObject !== streamRef.current) {
+      videoRef.current.srcObject = streamRef.current;
+      videoRef.current.play().catch(() => {});
+    }
+  });
+
   // Text-To-Speech (Bot speaking)
   useEffect(() => {
     if (currentQuestion && 'speechSynthesis' in window) {
