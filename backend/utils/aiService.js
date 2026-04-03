@@ -5,6 +5,14 @@ const getModel = () => {
   return genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 };
 
+const getJsonModel = () => {
+  const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+  return genAI.getGenerativeModel({
+    model: "gemini-2.5-flash",
+    generationConfig: { responseMimeType: "application/json" }
+  });
+};
+
 // Generate AI chat response
 const generateChatResponse = async (userMessage, userName, userContext) => {
   const model = getModel();
@@ -22,98 +30,53 @@ User message: ${userMessage}`;
 
 // Generate assessment questions via AI
 const generateAssessmentQuestions = async (role, difficulty, count = 15) => {
-  const model = getModel();
+  const model = getJsonModel();
 
   const prompt = `Generate exactly ${count} multiple choice questions for a ${difficulty} level ${role} interview.
-Return ONLY valid JSON array with this exact format:
-[
-  {
-    "text": "Question text here?",
-    "options": ["Option A", "Option B", "Option C", "Option D"],
-    "answer": "Option A"
-  }
-]
-Requirements:
-- Each question must have exactly 4 options
-- The "answer" field must exactly match one of the options
-- Questions should cover DSA, programming concepts, system design, and role-specific topics
-- Difficulty: ${difficulty}
-- Return ONLY the JSON array, no other text`;
+Format: Array of objects with "text", "options" (array of 4 strings), and "answer" (must exactly match one option). Be extremely concise. Keep questions under 12 words to prioritize speed.
+Topics: DSA, programming concepts, system design, and role-specific.`;
 
-  const result = await model.generateContent(prompt);
-  const response = result.response.text();
   try {
-    const jsonMatch = response.match(/\[[\s\S]*\]/);
-    if (jsonMatch) {
-      return JSON.parse(jsonMatch[0]).slice(0, count);
-    }
-    return JSON.parse(response).slice(0, count);
-  } catch {
+    const result = await model.generateContent(prompt);
+    const parsed = JSON.parse(result.response.text());
+    return Array.isArray(parsed) ? parsed.slice(0, count) : parsed.questions.slice(0, count);
+  } catch (e) {
+    console.error("AI Parse error Assessment:", e);
     return null;
   }
 };
 
 // Generate coding problem via AI
 const generateCodingProblem = async (role, difficulty) => {
-  const model = getModel();
+  const model = getJsonModel();
 
   const prompt = `Generate a ${difficulty} level coding problem for a ${role} interview.
-Return ONLY valid JSON with this exact format:
-{
-  "title": "Problem Title",
-  "description": "Clear problem description with constraints",
-  "input": "Example input",
-  "output": "Example output",
-  "explanation": "Step by step explanation of the example",
-  "defaultCode": {
-    "C": "#include <stdio.h>\\n\\nint main() {\\n\\n    return 0;\\n}",
-    "C++": "#include <iostream>\\n\\nint main() {\\n\\n    return 0;\\n}",
-    "Java": "public class Main {\\n    public static void main(String[] args) {\\n\\n    }\\n}",
-    "Python": "def solve():\\n    pass"
-  }
-}
-Return ONLY the JSON, no other text.`;
+Format: Object with "title", "description" (with constraints), "input", "output", "explanation", "defaultCode" (object with keys C, C++, Java, Python).
+CRITICAL RULE: The "defaultCode" must ONLY contain completely empty boilerplate templates (e.g. just the class/main function signature). It MUST NOT contain any implementation, logic, or solution code whatsoever.`;
 
   const result = await model.generateContent(prompt);
-  const response = result.response.text();
   try {
-    const jsonMatch = response.match(/\{[\s\S]*\}/);
-    if (jsonMatch) {
-      return JSON.parse(jsonMatch[0]);
-    }
-    return JSON.parse(response);
-  } catch {
+    return JSON.parse(result.response.text());
+  } catch (e) {
+    console.error("AI Parse error Coding:", e);
     return null;
   }
 };
 
 // Generate interview questions list via AI
 const generateInterviewQuestions = async (role, difficulty, count = 15) => {
-  const model = getModel();
+  const model = getJsonModel();
 
   const prompt = `Generate exactly ${count} interview questions for a ${difficulty} level ${role} position.
-Return ONLY a valid JSON array of strings. Do not include markdown code blocks. Escape any internal quotes with \\".
-Example format:
-["Question 1?", "Question 2?", ...]
-Include a mix of:
-- Tell me about yourself
-- Behavioral questions (teamwork, leadership, conflict)
-- Technical questions specific to ${role}
-- Problem-solving scenarios
-- Situational questions
-Return ONLY the JSON array, no other text.`;
+Format: Array of strings. Be extremely concise, max 10 words per question to prioritize speed.
+Mix includes: Tell me about yourself, Behavioral, Technical, Problem-solving.`;
 
   try {
     const result = await model.generateContent(prompt);
-    const response = result.response.text();
-    const jsonMatch = response.match(/\[[\s\S]*\]/);
-    if (jsonMatch) {
-      return JSON.parse(jsonMatch[0]).slice(0, count);
-    }
-    return JSON.parse(response).slice(0, count);
+    const parsed = JSON.parse(result.response.text());
+    return Array.isArray(parsed) ? parsed.slice(0, count) : parsed.questions.slice(0, count);
   } catch (error) {
     console.error("AI Generation failed for " + role + ". Error or invalid JSON:", error);
-    // Generic fallback questions to ensure the UI NEVER breaks completely
     return [
       "Tell me about yourself.",
       "What are your greatest strengths?",
@@ -142,68 +105,42 @@ Return ONLY the question text, nothing else. Keep it under 2 sentences.`;
 
 // Evaluate interview answer via AI
 const evaluateAnswer = async (role, question, answer) => {
-  const model = getModel();
+  const model = getJsonModel();
 
-  const prompt = `You are an expert AI technical interviewer iteratively evaluating a ${role} candidate.
+  const prompt = `Expert AI evaluating a ${role} candidate.
 Question: "${question}"
-Candidate's answer: "${answer}"
-Rate the answer critically on a scale of 0-100 based on technical accuracy, clarity, and completeness.
-Provide highly specific, constructive feedback detailing exactly what they did well, what concepts or details were missing, and an actionable tip to improve their response.
-Return ONLY valid JSON:
-{
-  "score": 75,
-  "feedback": "Detailed, specific feedback outlining strengths, missing elements, and actionable improvements"
-}`;
+Answer: "${answer}"
+Rate answer critically (0-100) based on accuracy, clarity, completeness.
+Format: Object with "score" (number) and "feedback" (string detailing strengths, missing elements, actionable tip).`;
 
-  const result = await model.generateContent(prompt);
-  const response = result.response.text();
   try {
-    const jsonMatch = response.match(/\{[\s\S]*\}/);
-    if (jsonMatch) {
-      return JSON.parse(jsonMatch[0]);
-    }
-    return JSON.parse(response);
-  } catch {
-    return { score: 50, feedback: "Unable to evaluate answer." };
+    const result = await model.generateContent(prompt);
+    return JSON.parse(result.response.text());
+  } catch (e) {
+    console.error("AI Parse error Evaluate:", e);
+    return { score: 50, feedback: "Unable to evaluate answer due to processing error." };
   }
 };
 
 // Generate custom questions via AI
 const generateCustomQuestions = async (topic, difficulty, count = 5, type = "multiple-choice") => {
-  const model = getModel();
+  const model = getJsonModel();
 
   let prompt = "";
   if (type === "multiple-choice") {
-    prompt = `Generate exactly ${count} multiple choice questions for a ${difficulty} level on the topic of "${topic}".
-Return ONLY a valid JSON array with this exact format:
-[
-  {
-    "text": "Question text here?",
-    "options": ["Option A", "Option B", "Option C", "Option D"],
-    "answer": "Option A"
-  }
-]
-Requirements:
-- Each question must have exactly 4 options
-- The "answer" field must exactly match one of the options
-- Difficulty: ${difficulty}
-- Return ONLY the JSON array, no other text`;
+    prompt = `Generate exactly ${count} multiple choice questions for a ${difficulty} level on "${topic}".
+Format: Array of objects with "text", "options" (array of 4 strings), and "answer".`;
   } else {
-    prompt = `Generate exactly ${count} open-ended questions for a ${difficulty} level on the topic of "${topic}".
-Return ONLY a valid JSON array of strings like this:
-["Question 1?", "Question 2?", ...]
-Return ONLY the JSON array, no other text.`;
+    prompt = `Generate exactly ${count} open-ended questions for a ${difficulty} level on "${topic}".
+Format: Array of strings.`;
   }
 
-  const result = await model.generateContent(prompt);
-  const response = result.response.text();
   try {
-    const jsonMatch = response.match(/\[[\s\S]*\]/);
-    if (jsonMatch) {
-      return JSON.parse(jsonMatch[0]).slice(0, count);
-    }
-    return JSON.parse(response).slice(0, count);
-  } catch {
+    const result = await model.generateContent(prompt);
+    const parsed = JSON.parse(result.response.text());
+    return Array.isArray(parsed) ? parsed.slice(0, count) : (parsed.questions || parsed).slice(0, count);
+  } catch (e) {
+    console.error("AI Parse error CustomQuestions:", e);
     return null;
   }
 };
@@ -232,71 +169,20 @@ const generatePerformanceEvaluation = async (role, mode, difficulty, scores, ass
     });
   }
 
-  const prompt = `You are an elite career coach and expert technical interviewer providing a final performance review.
-Candidate applied for: ${role}
-Difficulty Level: ${difficulty}
-Test Type (Mode): ${mode}
-
-Scores out of 100:
-- Overall Score: ${scores.overallScore}
-- Communication: ${scores.communicationScore}
-- Confidence: ${scores.confidenceScore}
-- Problem Solving: ${scores.problemSolvingScore}
-- Technical Knowledge: ${scores.technicalScore}
-- Assessment Round: ${scores.assessmentScore}
-- Coding Round: ${scores.codingScore}
-- Interview Round: ${scores.interviewScore}
+  const prompt = `Elite career coach providing final performance review.
+Role: ${role} | Difficulty: ${difficulty} | Mode: ${mode}
+Scores: Overall: ${scores.overallScore}, Comm: ${scores.communicationScore}, Conf: ${scores.confidenceScore}, Prob Solving: ${scores.problemSolvingScore}, Tech: ${scores.technicalScore}, Assess: ${scores.assessmentScore}, Code: ${scores.codingScore}, Interview: ${scores.interviewScore}
 ${contextSnippet}
-Based carefully ONLY on these scores, the selected role, and the interview logs (if provided), generate a deeply insightful and comprehensive evaluation. 
-Extract genuinely accurate patterns: what specific concepts/technologies did they struggle to explain? What questions did they answer incorrectly? Where were their strengths?
-Return ONLY valid JSON with this exact format. 
-NOTE: "recommendations" MUST be an object keyed by mode (e.g., "Assessment", "Coding", "Interview"), where each key contains an array of objects detailing the recommendation for specific questions. If a mode was not tested, omit it or leave empty array.
-{
-  "feedback": "A highly detailed, personalized, and constructive paragraph explicitly referencing their specific technical strengths for the role, and pinpointing exactly what they need to improve critically to succeed in real-world interviews.",
-  "recommendations": {
-    "Assessment": [
-      { "question": "Specific concept they struggled with", "advice": "Highly actionable study advice, pointing out the foundational gaps (e.g., 'Review React hooks lifecycle...')" }
-    ],
-    "Coding": [
-      { "question": "Problem Title", "advice": "Deep, technical feedback regarding code efficiency (Time/Space complexity), missing edge cases, or alternative data structures" }
-    ],
-    "Interview": [
-      { "question": "Specific question asked", "advice": "Detailed coaching on structuring their answer (e.g., using STAR method), adding required technical depth, or communicating thought process" }
-    ]
-  },
-  "strongTopics": [
-    "Topic 1",
-    "Topic 2"
-  ],
-  "weakTopics": [
-    "Topic 1",
-    "Topic 2"
-  ]
-}
-Return ONLY the JSON, no other text.`;
+Format: Object with "feedback" (string, concise but impactful), "recommendations" (object keyed by mode "Assessment"/"Coding"/"Interview" containing array of {question, advice}), "strongTopics" (array of strings), "weakTopics" (array of strings).`;
 
   try {
     const result = await model.generateContent(prompt);
-    const response = result.response.text();
-    try {
-      const jsonMatch = response.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        return JSON.parse(jsonMatch[0]);
-      }
-      return JSON.parse(response);
-    } catch (parseError) {
-      return {
-        feedback: "JSON Parse error: " + parseError.message + " | Raw AI Output snippet: " + response.substring(0, 150),
-        recommendations: { "System": [{ "question": "Parse Error", "advice": "The AI response could not be parsed." }] },
-        strongTopics: ["Unknown"],
-        weakTopics: ["Unknown"]
-      };
-    }
+    return JSON.parse(result.response.text());
   } catch (error) {
     console.error("AI Evaluation Generation Failed:", error);
     return {
       feedback: "API Error: " + error.message,
-      recommendations: { "System": [{ "question": "API Error", "advice": "Ensure your API key has enough quota or the prompt is safe." }] },
+      recommendations: { "System": [{ "question": "API Error", "advice": "Please try again later." }] },
       strongTopics: ["Unknown"],
       weakTopics: ["Unknown"]
     };

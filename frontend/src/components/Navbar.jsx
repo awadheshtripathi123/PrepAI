@@ -16,12 +16,16 @@ const Navbar = () => {
     };
 
     window.addEventListener("storage", handleStorage);
+    window.addEventListener("authChange", handleStorage);
+    
+    // Fallback interval
     const interval = setInterval(() => {
       setLoggedIn(checkLogin());
     }, 1000);
 
     return () => {
       window.removeEventListener("storage", handleStorage);
+      window.removeEventListener("authChange", handleStorage);
       clearInterval(interval);
     };
   }, []);

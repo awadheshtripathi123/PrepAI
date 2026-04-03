@@ -1,7 +1,17 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
+import { isLoggedIn } from "../utils/api";
 
 const Hero = ({ type = "home" }) => {
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const handleAction = (path) => {
+    if (!isLoggedIn()) {
+      navigate("/login", { state: { background: location } });
+    } else {
+      navigate(path);
+    }
+  };
 
   return (
     <div className="card-dark px-8 py-6 rounded-xl flex flex-col lg:flex-row items-center justify-between gap-6">
@@ -29,7 +39,7 @@ const Hero = ({ type = "home" }) => {
               </button>
 
               <button
-                onClick={() => navigate("/mock/performance")}
+                onClick={() => handleAction("/mock/performance")}
                 className="btn-primary opacity-90 px-5 py-2"
               >
                 Start a Mock Test
@@ -38,7 +48,7 @@ const Hero = ({ type = "home" }) => {
           ) : (
             <>
               <button
-                onClick={() => navigate("/mock/performance")} // ✅ FIXED
+                onClick={() => handleAction("/mock/performance")} // ✅ FIXED
                 className="btn-primary px-5 py-2"
               >
                 Start Interview

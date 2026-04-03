@@ -19,6 +19,7 @@ import Instructions from "./pages/Instructions";
 import ReportPage from "./pages/ReportPage";
 import CompanySpecificPage from "./pages/CompanySpecificPage";
 import CardPage from "./pages/CardPage"; // ✅ ADDED
+import ProtectedRoute from "./components/ProtectedRoute"; // ✅ ADDED
 
 import AssessmentRound from "./pages/AssessmentRound";
 import CodingRound from "./pages/CodingRound";
@@ -69,42 +70,44 @@ function App() {
           <Route index element={<Home />} />
           <Route path="learning" element={<Learning />} />
           <Route path="ai" element={<AISection />} />
-          <Route path="aichat" element={<AIChat />} />
-          <Route path="notifications" element={<NotificationPage />} />
           <Route path="community" element={<CommunityPage />} />
           <Route path="section" element={<SectionPage />} />
+          
+          <Route path="aichat" element={<AIChat />} />
+          <Route path="mock" element={<MockInterview />} />
 
-          {/* 🎯 MOCK FLOW */}
-          <Route path="mock">
+          {/* 🔥 PROTECTED ROUTES */}
+          <Route element={<ProtectedRoute />}>
+            <Route path="notifications" element={<NotificationPage />} />
 
-            <Route index element={<MockInterview />} />
-            <Route path="performance" element={<PerformancePage />} />
-            <Route path="role" element={<RoleBasedPage />} />
-            <Route path="resume" element={<ResumeBasedPage />} />
-            <Route path="instructions" element={<Instructions />} />
-            <Route path="report" element={<ReportPage />} />
-            <Route path="company" element={<CompanySpecificPage />} />
+            {/* 🎯 MOCK FLOW - DEEP FUNCTIONAL PAGES */}
+            <Route path="mock">
+              <Route path="performance" element={<PerformancePage />} />
+              <Route path="role" element={<RoleBasedPage />} />
+              <Route path="resume" element={<ResumeBasedPage />} />
+              <Route path="instructions" element={<Instructions />} />
+              <Route path="report" element={<ReportPage />} />
+              <Route path="company" element={<CompanySpecificPage />} />
 
-            {/* 🔥 FIX (YOUR ISSUE) */}
-            <Route path="card" element={<CardPage />} />
+              {/* 🔥 FIX (YOUR ISSUE) */}
+              <Route path="card" element={<CardPage />} />
 
-            <Route path="assessment" element={<AssessmentRound />} />
-            <Route path="coding" element={<CodingRound />} />
-            <Route path="interview" element={<InterviewRound />} />
-            <Route path="result" element={<ResultPage />} />
-            <Route path="result/:id" element={<ResultPage />} />
+              <Route path="assessment" element={<AssessmentRound />} />
+              <Route path="coding" element={<CodingRound />} />
+              <Route path="interview" element={<InterviewRound />} />
+              <Route path="result" element={<ResultPage />} />
+              <Route path="result/:id" element={<ResultPage />} />
+            </Route>
 
+            {/* 📊 */}
+            <Route path="analytics" element={<Analytics />} />
+
+            {/* 👤 */}
+            <Route path="profile" element={<Profile />} />
+            <Route path="edit-profile" element={<EditProfile />} />
+            <Route path="password" element={<ChangePassword />} />
+            <Route path="logout" element={<LogoutPage />} />
           </Route>
-
-          {/* 📊 */}
-          <Route path="analytics" element={<Analytics />} />
-
-          {/* 👤 */}
-          <Route path="profile" element={<Profile />} />
-          <Route path="edit-profile" element={<EditProfile />} />
-          <Route path="password" element={<ChangePassword />} />
-          <Route path="logout" element={<LogoutPage />} />
-
         </Route>
 
         {/* 🔐 NORMAL ROUTES */}

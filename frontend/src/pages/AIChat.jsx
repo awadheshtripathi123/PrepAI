@@ -1,7 +1,7 @@
 import { Send, ArrowLeft } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { authFetch } from "../utils/api";
+import { authFetch, isLoggedIn } from "../utils/api";
 
 const AIChat = () => {
   const [messages, setMessages] = useState([]);
@@ -26,6 +26,11 @@ const AIChat = () => {
 
   const sendMessage = async (msg = input) => {
     if (!msg.trim()) return;
+
+    if (!isLoggedIn()) {
+      navigate("/login", { state: { background: location } });
+      return;
+    }
 
     const userMsg = { type: "user", text: msg };
     setMessages((prev) => [...prev, userMsg]);

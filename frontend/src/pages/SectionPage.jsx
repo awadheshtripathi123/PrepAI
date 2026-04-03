@@ -1,10 +1,24 @@
 import { ArrowLeft } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import Card from "../components/Card";
+import { isLoggedIn } from "../utils/api";
 
 const SectionPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
+
+  const handleCardClick = (role) => {
+    if (!isLoggedIn()) {
+      navigate("/login", { state: { background: location } });
+    } else {
+      navigate("/mock/card", {
+        state: {
+          role: role.name,
+          img: role.img,
+        },
+      });
+    }
+  };
 
   const { title, roles } = location.state || {};
 
@@ -41,14 +55,7 @@ const SectionPage = () => {
               key={i}
               title={role.name}
               img={role.img}
-              onClick={() =>
-                navigate("/mock/card", {
-                  state: {
-                    role: role.name,
-                    img: role.img,
-                  },
-                })
-              }
+              onClick={() => handleCardClick(role)}
             />
           ))}
 

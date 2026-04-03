@@ -14,9 +14,17 @@ const LoginPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
+  const handleClose = () => {
+    if (location.state?.background || window.history.length > 2) {
+      navigate(-1);
+    } else {
+      navigate("/");
+    }
+  };
+
   useEffect(() => {
     const handleEsc = (e) => {
-      if (e.key === "Escape") navigate(-1);
+      if (e.key === "Escape") handleClose();
     };
     window.addEventListener("keydown", handleEsc);
     return () => window.removeEventListener("keydown", handleEsc);
@@ -148,12 +156,11 @@ const LoginPage = () => {
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div
         className="absolute inset-0 bg-black/40 backdrop-blur-md"
-        onClick={() => navigate(-1)}
       />
 
       <div className="relative z-10 w-[380px] rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 p-6 shadow-2xl">
         <button
-          onClick={() => navigate(-1)}
+          onClick={handleClose}
           className="absolute top-4 right-4 text-gray-400 hover:text-white"
         >
           <X size={18} />

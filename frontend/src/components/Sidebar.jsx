@@ -1,7 +1,7 @@
 import { Home, Book, Bot, Bell, User } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { authFetch } from "../utils/api";
+import { authFetch, isLoggedIn } from "../utils/api";
 
 const Sidebar = () => {
   const navigate = useNavigate();
@@ -10,18 +10,34 @@ const Sidebar = () => {
 
   useEffect(() => {
     const fetchUser = async () => {
+      if (!isLoggedIn()) {
+        setUserImage(null);
+        return;
+      }
       try {
         const res = await authFetch('/api/v1/auth/me');
         const data = await res.json();
         if (data.success && data.data.image) {
           setUserImage(data.data.image);
+        } else {
+          setUserImage(null);
         }
       } catch (err) {
         console.error("Failed to fetch user in sidebar", err);
+        setUserImage(null);
       }
     };
+
     fetchUser();
-  }, []);
+
+    window.addEventListener('authChange', fetchUser);
+    window.addEventListener('storage', fetchUser);
+    
+    return () => {
+      window.removeEventListener('authChange', fetchUser);
+      window.removeEventListener('storage', fetchUser);
+    };
+  }, [location.pathname]);
 
   const menu = [
     { icon: Home, path: "/" },
@@ -38,6 +54,12 @@ const Sidebar = () => {
 
   // ✅ Optimized navigation (no reload if same route)
   const handleNavigate = (path) => {
+    // If the path is protected (like notifications) and user is not logged in:
+    if (path === "/notifications" && !isLoggedIn()) {
+      navigate("/login", { state: { background: location } });
+      return;
+    }
+
     if (!isActive(path)) {
       navigate(path);
     }
@@ -45,7 +67,11 @@ const Sidebar = () => {
 
   // ✅ Profile toggle logic
   const handleProfileClick = () => {
-    navigate("/profile");
+    if (!isLoggedIn()) {
+      navigate("/login", { state: { background: location } });
+    } else {
+      navigate("/profile");
+    }
   };
 
   return (

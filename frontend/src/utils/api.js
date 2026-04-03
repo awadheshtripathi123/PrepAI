@@ -6,10 +6,12 @@ export const getToken = () => {
 
 export const setToken = (token) => {
   localStorage.setItem('token', token);
+  window.dispatchEvent(new Event('authChange'));
 };
 
 export const removeToken = () => {
   localStorage.removeItem('token');
+  window.dispatchEvent(new Event('authChange'));
 };
 
 export const isLoggedIn = () => {

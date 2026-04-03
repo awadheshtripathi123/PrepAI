@@ -1,18 +1,24 @@
 import Card from "./Card";
 import { ChevronRight } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
+import { isLoggedIn } from "../utils/api";
 
 const Section = ({ title, roles = [] }) => {
   const navigate = useNavigate();
+  const location = useLocation();
 
   // ✅ HANDLE NAVIGATION
   const handleCardClick = (role) => {
-    navigate("/mock/card", {
-      state: {
-        role: role.name,
-        img: role.img,
-      },
-    });
+    if (!isLoggedIn()) {
+      navigate("/login", { state: { background: location } });
+    } else {
+      navigate("/mock/card", {
+        state: {
+          role: role.name,
+          img: role.img,
+        },
+      });
+    }
   };
 
   return (

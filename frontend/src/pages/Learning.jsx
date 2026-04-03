@@ -1,7 +1,7 @@
 import { ChevronRight } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { authFetch } from "../utils/api";
+import { authFetch, isLoggedIn } from "../utils/api";
 import {
   LineChart,
   Line,
@@ -13,7 +13,16 @@ import {
 
 const Learning = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [userName, setUserName] = useState("");
+
+  const handleNavigate = (path) => {
+    if (!isLoggedIn()) {
+      navigate("/login", { state: { background: location } });
+    } else {
+      navigate(path);
+    }
+  };
   const [learningData, setLearningData] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -84,7 +93,7 @@ const Learning = () => {
               Community Hub
             </button>
             <button
-              onClick={() => navigate("/mock/performance")}
+              onClick={() => handleNavigate("/mock/performance")}
               className="btn-primary opacity-90 px-5 py-2"
             >
               Start a Mock Test
@@ -237,7 +246,7 @@ const Learning = () => {
               <p>Study Hours: {data.totalHours}h</p>
             </div>
             <button
-              onClick={() => navigate("/mock/performance")}
+              onClick={() => handleNavigate("/mock/performance")}
               className="mt-4 bg-blue-500 px-3 py-1 rounded text-white text-xs"
             >
               Practice Again
@@ -266,7 +275,7 @@ const Learning = () => {
               ))}
             </ul>
             <button
-              onClick={() => navigate("/aichat")}
+              onClick={() => handleNavigate("/aichat")}
               className="mt-4 bg-blue-500 px-3 py-1 rounded text-white text-xs"
             >
               Ask AI

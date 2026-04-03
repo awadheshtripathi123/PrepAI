@@ -1,10 +1,20 @@
 import { useState } from "react";
 import { Search, Mic } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
+import { isLoggedIn } from "../utils/api";
 
 const AISection = () => {
   const [input, setInput] = useState("");
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const handleNavigate = (path, state = {}) => {
+    if (!isLoggedIn()) {
+      navigate("/login", { state: { background: location } });
+    } else {
+      navigate(path, state);
+    }
+  };
 
   const features = [
     {
@@ -31,7 +41,7 @@ const AISection = () => {
   const handleSearch = () => {
     if (!input.trim()) return;
 
-    navigate("/aichat", {
+    handleNavigate("/aichat", {
       state: { message: input },
     });
 
@@ -71,7 +81,7 @@ const AISection = () => {
         {features.map((item, i) => (
           <div
             key={i}
-            onClick={() => navigate(item.route)}
+            onClick={() => handleNavigate(item.route)}
             className="bg-[#111827] border border-white/10 rounded-xl p-4 cursor-pointer 
                        hover:scale-105 hover:shadow-xl transition"
           >

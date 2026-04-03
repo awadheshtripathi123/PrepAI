@@ -1,8 +1,18 @@
 import { ArrowLeft } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
+import { isLoggedIn } from "../utils/api";
 
 const MockInterview = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const handleAction = (path) => {
+    if (!isLoggedIn()) {
+      navigate("/login", { state: { background: location } });
+    } else {
+      navigate(path);
+    }
+  };
 
   return (
     <div className="w-full overflow-x-hidden space-y-6">
@@ -32,7 +42,7 @@ const MockInterview = () => {
           </p>
 
           <button
-            onClick={() => navigate("/mock/performance")}
+            onClick={() => handleAction("/mock/performance")}
             className="mt-5 btn-primary px-5 py-2 text-sm"
           >
             Start Personalized Interview
@@ -80,7 +90,7 @@ const MockInterview = () => {
               ].map((item, i) => (
                 <div
                   key={i}
-                  onClick={() => navigate("/mock/role")}
+                  onClick={() => handleAction("/mock/role")}
                   className="bg-white/5 border border-white/10 p-2 rounded cursor-pointer hover:bg-white/10 transition"
                 >
                   {item}
